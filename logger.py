@@ -1,3 +1,4 @@
+import numpy as np
 import random
 import torch
 from tensorboardX import SummaryWriter
@@ -30,19 +31,19 @@ class Tacotron2Logger(SummaryWriter):
         idx = random.randint(0, alignments.size(0) - 1)
         self.add_image(
             "alignment",
-            plot_alignment_to_numpy(alignments[idx].data.cpu().numpy().T),
+            np.moveaxis(plot_alignment_to_numpy(alignments[idx].data.cpu().numpy().T),2,0),
             iteration)
         self.add_image(
             "mel_target",
-            plot_spectrogram_to_numpy(mel_targets[idx].data.cpu().numpy()),
+            np.moveaxis(plot_spectrogram_to_numpy(mel_targets[idx].data.cpu().numpy()),2,0),
             iteration)
         self.add_image(
             "mel_predicted",
-            plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),
+            np.moveaxis(plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),2,0),
             iteration)
         self.add_image(
             "gate",
-            plot_gate_outputs_to_numpy(
+            np.moveaxis(plot_gate_outputs_to_numpy(
                 gate_targets[idx].data.cpu().numpy(),
-                torch.sigmoid(gate_outputs[idx]).data.cpu().numpy()),
+                torch.sigmoid(gate_outputs[idx]).data.cpu().numpy()),2,0),
             iteration)
