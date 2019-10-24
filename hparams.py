@@ -20,21 +20,24 @@ def create_hparams(hparams_string=None, verbose=False):
         cudnn_enabled=True,
         cudnn_benchmark=False,
         ignore_layers=['embedding.weight'],
-        use_cpu=False,
+        use_cpu=True,
 
         ################################
         # Data Parameters             #
         ################################
         load_mel_from_disk=False,
-        training_files='filelists/ljs_audio_text_train_filelist.txt',
-        validation_files='filelists/ljs_audio_text_val_filelist.txt',
+        training_files='../data/isot_persot_train_filelist.txt',
+        validation_files='../data/isot_persot_val_filelist.txt',
+        #training_files='filelists/ljs_audio_text_train_filelist.txt',
+        #validation_files='filelists/ljs_audio_text_val_filelist.txt',
         text_cleaners=['english_cleaners'],
 
         ################################
         # Audio Parameters             #
         ################################
-        max_wav_value=32768.0,
-        sampling_rate=22050,
+        #max_wav_value=32768.0,
+        max_wav_value=8388608.0,
+        sampling_rate=44100,
         filter_length=1024,
         hop_length=256,
         win_length=1024,
