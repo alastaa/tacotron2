@@ -30,7 +30,7 @@ class Tacotron2Logger(SummaryWriter):
 
         # plot alignment, mel target and predicted, gate target and predicted
         idx = random.randint(0, alignments.size(0) - 1)
-        if text_tensor != None:
+        if text_tensor is not None:
             text = sequence_to_text(text_tensor[idx, :].tolist())
         else:
             text = ''
