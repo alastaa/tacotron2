@@ -48,4 +48,3 @@ class Tacotron2Logger(SummaryWriter):
                 gate_targets[idx].data.cpu().numpy(),
                 torch.sigmoid(gate_outputs[idx]).data.cpu().numpy()),2,0),
             iteration)
-        self.add_embedding(model.embedding.weight, symbols, tag='character_embedding', global_step=iteration)
