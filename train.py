@@ -15,7 +15,6 @@ from data_utils import TextMelLoader, TextMelCollate
 from loss_function import Tacotron2Loss
 from logger import Tacotron2Logger
 from hparams import create_hparams
-from text import sequence_to_text
 
 
 def reduce_tensor(tensor, n_gpus):
@@ -135,9 +134,9 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
         val_loss = 0.0
         for i, batch in enumerate(val_loader):
             x, y = model.parse_batch(batch)
-            text = sequence_to_text(x.tolist())
             y_pred = model(x)
             loss = criterion(y_pred, y)
+            text_tensor = x[0]
             if distributed_run:
                 reduced_val_loss = reduce_tensor(loss.data, n_gpus).item()
             else:
@@ -148,7 +147,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
     model.train()
     if rank == 0:
         print("Validation loss {}: {:9f}  ".format(iteration, reduced_val_loss))
-        logger.log_validation(reduced_val_loss, model, y, y_pred, iteration, text)
+        logger.log_validation(reduced_val_loss, model, y, y_pred, iteration, text_tensor)
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
