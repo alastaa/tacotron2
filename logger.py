@@ -39,7 +39,7 @@ class Tacotron2Logger(SummaryWriter):
             np.moveaxis(plot_spectrogram_to_numpy(mel_targets[idx].data.cpu().numpy()),2,0),
             iteration)
         self.add_image(
-            "mel_predicted"
+            "mel_predicted",
             np.moveaxis(plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),2,0),
             iteration)
         self.add_image(
