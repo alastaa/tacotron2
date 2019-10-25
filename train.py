@@ -136,7 +136,6 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
             x, y = model.parse_batch(batch)
             y_pred = model(x)
             loss = criterion(y_pred, y)
-            text_tensor = x[0]
             if distributed_run:
                 reduced_val_loss = reduce_tensor(loss.data, n_gpus).item()
             else:
@@ -147,7 +146,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
     model.train()
     if rank == 0:
         print("Validation loss {}: {:9f}  ".format(iteration, reduced_val_loss))
-        logger.log_validation(reduced_val_loss, model, y, y_pred, iteration, text_tensor, model.embedding.weight)
+        logger.log_validation(reduced_val_loss, model, y, y_pred, iteration)
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
