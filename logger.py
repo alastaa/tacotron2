@@ -17,7 +17,7 @@ class Tacotron2Logger(SummaryWriter):
             self.add_scalar("learning.rate", learning_rate, iteration)
             self.add_scalar("duration", duration, iteration)
 
-    def log_validation(self, reduced_loss, model, y, y_pred, iteration):
+    def log_validation(self, reduced_loss, model, y, y_pred, iteration, text=""):
         self.add_scalar("validation.loss", reduced_loss, iteration)
         _, mel_outputs, gate_outputs, alignments = y_pred
         mel_targets, gate_targets = y
@@ -36,11 +36,13 @@ class Tacotron2Logger(SummaryWriter):
         self.add_image(
             "mel_target",
             np.moveaxis(plot_spectrogram_to_numpy(mel_targets[idx].data.cpu().numpy()),2,0),
-            iteration)
+            iteration,
+            description=text)
         self.add_image(
             "mel_predicted",
             np.moveaxis(plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),2,0),
-            iteration)
+            iteration,
+            description=text)
         self.add_image(
             "gate",
             np.moveaxis(plot_gate_outputs_to_numpy(
