@@ -39,15 +39,13 @@ class Tacotron2Logger(SummaryWriter):
             np.moveaxis(plot_alignment_to_numpy(alignments[idx].data.cpu().numpy().T),2,0),
             iteration)
         self.add_image(
-            "mel_target",
+            "mel_target -- '{}'".format(text),
             np.moveaxis(plot_spectrogram_to_numpy(mel_targets[idx].data.cpu().numpy()),2,0),
-            iteration,
-            description=text)
+            iteration)
         self.add_image(
-            "mel_predicted",
+            "mel_predicted -- '{}'".format(text),
             np.moveaxis(plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),2,0),
-            iteration,
-            description=text)
+            iteration)
         self.add_image(
             "gate",
             np.moveaxis(plot_gate_outputs_to_numpy(
