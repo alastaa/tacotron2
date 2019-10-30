@@ -5,6 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 from layers import ConvNorm, LinearNorm
 from utils import to_gpu, get_mask_from_lengths
+from GST import GST
 
 
 class LocationLayer(nn.Module):
@@ -470,6 +471,7 @@ class Tacotron2(nn.Module):
         self.encoder = Encoder(hparams)
         self.decoder = Decoder(hparams)
         self.postnet = Postnet(hparams)
+        self.gst = GST(hparams)
         self.use_cpu = hparams.use_cpu
 
     def parse_batch(self, batch):
@@ -508,7 +510,11 @@ class Tacotron2(nn.Module):
 
         embedded_inputs = self.embedding(text_inputs).transpose(1, 2)
 
-        encoder_outputs = self.encoder(embedded_inputs, text_lengths)
+        transcript_outputs = self.encoder(embedded_inputs, text_lengths)
+
+        gst_outputs = self.gst(mels)
+        gst_outputs = gst_outputs.expand_as(transcript_outputs)
+        encoder_outputs = transcript_outputs + gst_outputs
 
         mel_outputs, gate_outputs, alignments = self.decoder(
             encoder_outputs, mels, memory_lengths=text_lengths)
