@@ -505,7 +505,6 @@ class Tacotron2(nn.Module):
         return inputs
 
     def forward(self, inputs):
-        import pdb; pdb.set_trace()
         text_inputs, text_lengths, mels, max_len, output_lengths, speakers = inputs
         text_lengths, output_lengths = text_lengths.data, output_lengths.data
 
