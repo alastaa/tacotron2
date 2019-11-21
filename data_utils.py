@@ -1,4 +1,5 @@
 import random
+import re
 import numpy as np
 import torch
 import torch.utils.data
@@ -27,12 +28,20 @@ class TextMelLoader(torch.utils.data.Dataset):
         random.seed(1234)
         random.shuffle(self.audiopaths_and_text)
 
-    def get_mel_text_pair(self, audiopath_and_text):
+    def get_speaker(self, filepath):
+        speaker_code_mapping = {'01m': 0, '02m': 1, '03m': 2, '01n': 3, '02n': 4, '03n': 5}
+        match = re.search(r'(?:long_)([0-9]{2}[n|m])', filepath)
+        speaker_code = match.groups()[0]
+        speaker = speaker_code_mapping[speaker_code]
+        return torch.LongTensor([speaker])
+
+    def get_mel_text_speaker_tuple(self, audiopath_and_text):
         # separate filename and text
         audiopath, text = audiopath_and_text[0], audiopath_and_text[1]
+        speaker = self.get_speaker(audiopath)
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
-        return (text, mel)
+        return (text, mel, speaker)
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
@@ -58,7 +67,7 @@ class TextMelLoader(torch.utils.data.Dataset):
         return text_norm
 
     def __getitem__(self, index):
-        return self.get_mel_text_pair(self.audiopaths_and_text[index])
+        return self.get_mel_text_speaker_tuple(self.audiopaths_and_text[index])
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -76,6 +85,9 @@ class TextMelCollate():
         ------
         batch: [text_normalized, mel_normalized]
         """
+
+        # Separate speakers from text sequences.
+        speakers = torch.cat([speaker for _,_,speaker in batch], 0)
         # Right zero-pad all one-hot text sequences to max input length
         input_lengths, ids_sorted_decreasing = torch.sort(
             torch.LongTensor([len(x[0]) for x in batch]),
@@ -108,4 +120,4 @@ class TextMelCollate():
             output_lengths[i] = mel.size(1)
 
         return text_padded, input_lengths, mel_padded, gate_padded, \
-            output_lengths
+            output_lengths, speakers

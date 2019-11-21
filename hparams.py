@@ -52,6 +52,9 @@ def create_hparams(hparams_string=None, verbose=False):
         n_symbols=len(symbols),
         symbols_embedding_dim=512,
 
+        n_speakers = 6,
+        speaker_embedding_dim=512,
+
         # Encoder parameters
         encoder_kernel_size=5,
         encoder_n_convolutions=3,
