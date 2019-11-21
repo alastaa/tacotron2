@@ -464,6 +464,8 @@ class Tacotron2(nn.Module):
         self.n_frames_per_step = hparams.n_frames_per_step
         self.embedding = nn.Embedding(
             hparams.n_symbols, hparams.symbols_embedding_dim)
+        self.speaker_embedding = nn.Embedding(
+            hparams.n_speakers, hparams.speaker_embedding_dim)
         std = sqrt(2.0 / (hparams.n_symbols + hparams.symbols_embedding_dim))
         val = sqrt(3.0) * std  # uniform bounds for std
         self.embedding.weight.data.uniform_(-val, val)
@@ -474,7 +476,7 @@ class Tacotron2(nn.Module):
 
     def parse_batch(self, batch):
         text_padded, input_lengths, mel_padded, gate_padded, \
-            output_lengths = batch
+            output_lengths, speakers = batch
         text_padded = to_gpu(text_padded).long()
         input_lengths = to_gpu(input_lengths).long()
         max_len = torch.max(input_lengths.data).item()
@@ -483,7 +485,7 @@ class Tacotron2(nn.Module):
         output_lengths = to_gpu(output_lengths).long()
 
         return (
-            (text_padded, input_lengths, mel_padded, max_len, output_lengths),
+            (text_padded, input_lengths, mel_padded, max_len, output_lengths, speakers),
             (mel_padded, gate_padded))
 
     def parse_output(self, outputs, output_lengths=None):
@@ -503,12 +505,18 @@ class Tacotron2(nn.Module):
         return inputs
 
     def forward(self, inputs):
-        text_inputs, text_lengths, mels, max_len, output_lengths = inputs
+        import pdb; pdb.set_trace()
+        text_inputs, text_lengths, mels, max_len, output_lengths, speakers = inputs
         text_lengths, output_lengths = text_lengths.data, output_lengths.data
 
         embedded_inputs = self.embedding(text_inputs).transpose(1, 2)
 
         encoder_outputs = self.encoder(embedded_inputs, text_lengths)
+
+        speaker_embedding = self.speaker_embedding(speakers).unsqueeze(1)
+        speaker_embedding = speaker_embedding.expand_as(encoder_outputs)
+
+        encoder_outputs += speaker_embedding
 
         mel_outputs, gate_outputs, alignments = self.decoder(
             encoder_outputs, mels, memory_lengths=text_lengths)
@@ -520,9 +528,15 @@ class Tacotron2(nn.Module):
             [mel_outputs, mel_outputs_postnet, gate_outputs, alignments],
             output_lengths)
 
-    def inference(self, inputs):
+    def inference(self, inputs, speakers):
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
         encoder_outputs = self.encoder.inference(embedded_inputs)
+
+        speaker_embedding = self.speaker_embedding(speakers).unsqueeze(1)
+        speaker_embedding = speaker_embedding.expand_as(encoder_outputs)
+
+        encoder_outputs += speaker_embedding
+
         mel_outputs, gate_outputs, alignments = self.decoder.inference(
             encoder_outputs)
 
