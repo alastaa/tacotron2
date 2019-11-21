@@ -1,2 +1,5 @@
 results/*
 *.ipynb
+*.wav
+**__pycache__
+*notes*.md
