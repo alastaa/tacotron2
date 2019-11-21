@@ -3,3 +3,4 @@ results/*
 *.wav
 **__pycache__
 *notes*.md
+run_demo.py
