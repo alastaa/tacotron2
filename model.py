@@ -498,6 +498,10 @@ class Tacotron2(nn.Module):
 
         return outputs
 
+    def parse_input(self, inputs):
+        inputs = fp32_to_fp16(inputs) if self.fp16_run else inputs
+        return inputs
+
     def forward(self, inputs):
         text_inputs, text_lengths, mels, max_len, output_lengths = inputs
         text_lengths, output_lengths = text_lengths.data, output_lengths.data
