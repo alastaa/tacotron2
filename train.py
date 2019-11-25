@@ -11,6 +11,8 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader
 
 from model import Tacotron2
+from model_simple_embedding import Tacotron2SimpleEmbedding
+from model_gst import Tacotron2GST
 from data_utils import TextMelLoader, TextMelCollate
 from loss_function import Tacotron2Loss
 from logger import Tacotron2Logger
@@ -43,7 +45,7 @@ def prepare_dataloaders(hparams):
     # Get data, data loaders and collate function ready
     trainset = TextMelLoader(hparams.training_files, hparams)
     valset = TextMelLoader(hparams.validation_files, hparams)
-    collate_fn = TextMelCollate(hparams.n_frames_per_step)
+    collate_fn = TextMelCollate(hparams.n_frames_per_step, hparams.model_type)
 
     if hparams.distributed_run:
         train_sampler = DistributedSampler(trainset)
@@ -71,10 +73,16 @@ def prepare_directories_and_logger(output_directory, log_directory, rank):
 
 
 def load_model(hparams):
+    model_type = hparams.model_type
+    model_type_mapping = {
+            'normal': Tacotron2,
+            'simple-embedding': Tacotron2SimpleEmbedding,
+            'gst': Tacotron2GST,
+            }
     if hparams.use_cpu:
-        model = Tacotron2(hparams).cpu()
+        model = model_type_mapping[model_type](hparams).cpu()
     else:
-        model = Tacotron2(hparams).cuda()
+        model = model_type_mapping[model_type](hparams).cuda()
     if hparams.fp16_run:
         model.decoder.attention_layer.score_mask_value = finfo('float16').min
 
@@ -155,7 +163,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
     Params
     ------
-    output_directory (string): directory to save checkpoints
+    output_directory (string): direTtory to save checkpoints
     log_directory (string) directory to save tensorboard logs
     checkpoint_path(string): checkpoint path
     n_gpus (int): number of gpus
@@ -278,10 +286,14 @@ if __name__ == '__main__':
                         required=False, help='comma separated name=value pairs')
     parser.add_argument('--model_name', type=str, default='',
                         help='name which goes in model checkpoint files')
+    parser.add_argument('--model_type', type=str, default='normal',
+                        help='Type of model. eg. gst, normal, simple-embedding')
+
 
     args = parser.parse_args()
     hparams = create_hparams(args.hparams)
     hparams.model_name = args.model_name
+    hparams.model_type = args.model_type
 
     torch.backends.cudnn.enabled = hparams.cudnn_enabled
     torch.backends.cudnn.benchmark = hparams.cudnn_benchmark

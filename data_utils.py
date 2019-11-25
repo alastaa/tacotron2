@@ -1,4 +1,5 @@
 import random
+import re
 import numpy as np
 import torch
 import torch.utils.data
@@ -16,6 +17,7 @@ class TextMelLoader(torch.utils.data.Dataset):
     """
     def __init__(self, audiopaths_and_text, hparams):
         self.audiopaths_and_text = load_filepaths_and_text(audiopaths_and_text)
+        self.model_type = hparams.model_type
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
         self.sampling_rate = hparams.sampling_rate
@@ -26,6 +28,14 @@ class TextMelLoader(torch.utils.data.Dataset):
             hparams.mel_fmax)
         random.seed(1234)
         random.shuffle(self.audiopaths_and_text)
+
+    def get_speaker(self, audiopath_and_text):
+        filepath, text = audiopath_and_text[0], audiopath_and_text[1]
+        speaker_code_mapping = {'01m': 0, '02m': 1, '03m': 2, '01n': 3, '02n': 4, '03n': 5}
+        match = re.search(r'(?:long_)([0-9]{2}[n|m])', filepath)
+        speaker_code = match.groups()[0]
+        speaker = speaker_code_mapping[speaker_code]
+        return torch.LongTensor([speaker])
 
     def get_mel_text_pair(self, audiopath_and_text):
         # separate filename and text
@@ -58,7 +68,11 @@ class TextMelLoader(torch.utils.data.Dataset):
         return text_norm
 
     def __getitem__(self, index):
-        return self.get_mel_text_pair(self.audiopaths_and_text[index])
+        if self.model_type=='simple-embedding':
+            return self.get_mel_text_pair(self.audiopaths_and_text[index])+\
+                    (self.get_speaker(self.audiopaths_and_text[index]),)
+        else:
+            return self.get_mel_text_pair(self.audiopaths_and_text[index])
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -67,8 +81,9 @@ class TextMelLoader(torch.utils.data.Dataset):
 class TextMelCollate():
     """ Zero-pads model inputs and targets based on number of frames per setep
     """
-    def __init__(self, n_frames_per_step):
+    def __init__(self, n_frames_per_step, model_type):
         self.n_frames_per_step = n_frames_per_step
+        self.model_type = model_type
 
     def __call__(self, batch):
         """Collate's training batch from normalized text and mel-spectrogram
@@ -106,6 +121,12 @@ class TextMelCollate():
             mel_padded[i, :, :mel.size(1)] = mel
             gate_padded[i, mel.size(1)-1:] = 1
             output_lengths[i] = mel.size(1)
+
+        if self.model_type == "simple-embedding":
+            # Separate speakers from text sequences.
+            speakers = torch.cat([speaker for _,_,speaker in batch], 0)
+            return text_padded, input_lengths, mel_padded, gate_padded, \
+                output_lengths, speakers
 
         return text_padded, input_lengths, mel_padded, gate_padded, \
             output_lengths
