@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 
 from model import Tacotron2
 from model_simple_embedding import Tacotron2SimpleEmbedding
+from model_embedding import Tacotron2Embedding 
 from model_gst import Tacotron2GST
 from data_utils import TextMelLoader, TextMelCollate
 from loss_function import Tacotron2Loss
@@ -78,6 +79,7 @@ def load_model(hparams):
             'normal': Tacotron2,
             'simple-embedding': Tacotron2SimpleEmbedding,
             'gst': Tacotron2GST,
+            'embedding': Tacotron2Embedding,
             }
     if hparams.use_cpu:
         model = model_type_mapping[model_type](hparams).cpu()

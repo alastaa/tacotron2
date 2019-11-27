@@ -60,6 +60,7 @@ def create_hparams(hparams_string=None, verbose=False):
         # Simple speaker embedding parameters
         n_speakers = 6,
         speaker_embedding_dim=512,
+        speaker_embedding_transformation_dropout=0.3,
 
         # Decoder parameters
         n_frames_per_step=1,  # currently only 1 is supported
