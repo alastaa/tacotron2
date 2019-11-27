@@ -11,6 +11,7 @@ import array
 import os
 from os.path import expanduser
 import scipy.io.wavfile
+import torch
 
 # Author: Brian K. Vogel
 # brian.vogel@gmail.com
@@ -341,3 +342,33 @@ def gla(spectrogram,
     for approximated_signal in generator:
         pass
     return approximated_signal
+
+
+def db_to_amp(x):
+    return np.power(10.0, x * 0.05)
+
+
+class GriffinLimVocoder():
+
+    def __init__(self, iterations=30, istft_kwargs={}, stft_kwargs={}):
+        self.iterations = iterations
+        self.istft_kwargs = istft_kwargs
+        self.stft_kwargs = stft_kwargs
+
+    def griffin_lim_vocoder(self, mel_spectrogram):
+        new_out = mel_spectrogram.view(mel_spectrogram.shape[1:]).detach().numpy()
+        new_out += -np.amin(new_out)
+        new_out = new_out/np.amax(new_out)*160
+        new_out = db_to_amp(new_out)
+        magnitude_spectrogram = librosa.feature.inverse.mel_to_stft(new_out, power=1.2)
+        audio = gla(magnitude_spectrogram,
+                    iterations=self.iterations,
+                    istft_kwargs=self.istft_kwargs,
+                    stft_kwargs=self.stft_kwargs)
+        
+        return audio, new_out, magnitude_spectrogram     
+
+    def infer(self, mel_spectrogram, use_cpu=False):
+        audio, _, _ = self.griffin_lim_vocoder(mel_spectrogram)
+        return torch.tensor(audio)
+
