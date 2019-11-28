@@ -214,9 +214,14 @@ class Encoder(nn.Module):
 
         return outputs
 
-    def inference(self, x):
+    def inference(self, x, speaker_embedding):
         for conv in self.convolutions:
             x = F.dropout(F.relu(conv(x)), 0.5, self.training)
+            ex = speaker_emb_layer(speaker_embedding)
+            ex = ex.unsqueeze(1)
+            ex = ex.transpose(1,2)
+            ex = ex.expand_as(x)
+            x += ex
 
         x = x.transpose(1, 2)
 
@@ -556,13 +561,15 @@ class Tacotron2Embedding(nn.Module):
             output_lengths)
 
     def inference(self, inputs, speakers):
+        speaker_embedding = self.speaker_embedding(speakers)
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
-        encoder_outputs = self.encoder.inference(embedded_inputs)
+        encoder_outputs = self.encoder.inference(embedded_inputs, speaker_embedding)
 
-        speaker_embedding = self.speaker_embedding(speakers).unsqueeze(1)
-        speaker_embedding = speaker_embedding.expand_as(encoder_outputs)
+        transformed_speaker_emb = self.speaker_transformation(speaker_embedding)
+        transformed_speaker_emb = transformed_speaker_emb.unsqueeze(1)
+        transformed_speaker_emb = transformed_speaker_emb.expand_as(encoder_outputs)
 
-        encoder_outputs += speaker_embedding
+        encoder_outputs += transformed_speaker_emb 
 
         mel_outputs, gate_outputs, alignments = self.decoder.inference(
             encoder_outputs)
