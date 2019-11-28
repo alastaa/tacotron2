@@ -215,7 +215,7 @@ class Encoder(nn.Module):
         return outputs
 
     def inference(self, x, speaker_embedding):
-        for conv in self.convolutions:
+        for conv, speaker_emb_layer in zip(self.convolutions, self.speaker_embedding_layers):
             x = F.dropout(F.relu(conv(x)), 0.5, self.training)
             ex = speaker_emb_layer(speaker_embedding)
             ex = ex.unsqueeze(1)
