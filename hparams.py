@@ -61,6 +61,8 @@ def create_hparams(hparams_string=None, verbose=False):
         n_speakers = 6,
         speaker_embedding_dim=512,
         speaker_embedding_transformation_dropout=0.3,
+        # Used when concatenating embedding to tensors
+        speaker_embedding_output_dim=64,
 
         # Decoder parameters
         n_frames_per_step=1,  # currently only 1 is supported
