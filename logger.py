@@ -48,3 +48,8 @@ class Tacotron2Logger(SummaryWriter):
                 gate_targets[idx].data.cpu().numpy(),
                 torch.sigmoid(gate_outputs[idx]).data.cpu().numpy()),2,0),
             iteration)
+        self.add_embedding(
+            model.speaker_embedding.weight.detach().cpu().numpy(),
+            [str(i) for i in range(model.speaker_embedding.num_embeddings)],
+            global_step=iteration,
+            tag='speaker embeddings')
