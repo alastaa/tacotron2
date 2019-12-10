@@ -83,7 +83,7 @@ def load_model(hparams):
             'gst': Tacotron2GST,
             'embedding': Tacotron2Embedding,
             'simple-cat': Tacotron2SimpleCat,
-            'simple-cat2': Tacotron2SimpleCat,
+            'simple-cat2': Tacotron2SimpleCat2,
             }
     if hparams.use_cpu:
         model = model_type_mapping[model_type](hparams).cpu()
