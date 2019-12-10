@@ -68,7 +68,7 @@ class TextMelLoader(torch.utils.data.Dataset):
         return text_norm
 
     def __getitem__(self, index):
-        if self.model_type in ['simple-embedding', 'embedding', 'simple-cat']:
+        if self.model_type in ['simple-embedding', 'embedding', 'simple-cat', 'simple-cat2']:
             return self.get_mel_text_pair(self.audiopaths_and_text[index])+\
                     (self.get_speaker(self.audiopaths_and_text[index]),)
         else:
@@ -122,7 +122,7 @@ class TextMelCollate():
             gate_padded[i, mel.size(1)-1:] = 1
             output_lengths[i] = mel.size(1)
 
-        if self.model_type in ["simple-embedding", 'embedding', 'simple-cat']:
+        if self.model_type in ["simple-embedding", 'embedding', 'simple-cat', 'simple-cat2']:
             # Separate speakers from text sequences.
             speakers = torch.cat([speaker for _,_,speaker in batch], 0)
             return text_padded, input_lengths, mel_padded, gate_padded, \

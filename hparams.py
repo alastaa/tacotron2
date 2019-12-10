@@ -60,7 +60,7 @@ def create_hparams(hparams_string=None, verbose=False):
         # Simple speaker embedding parameters
         n_speakers = 6,
         speaker_embedding_dim=512,
-        speaker_embedding_transformation_dropout=0.3,
+        speaker_embedding_transformation_dropout=0.1,
         # Used when concatenating embedding to tensors
         speaker_embedding_output_dim=64,
 
