@@ -136,7 +136,7 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath):
 
 
 def validate(model, criterion, valset, iteration, batch_size, n_gpus,
-             collate_fn, logger, distributed_run, rank):
+             collate_fn, logger, distributed_run, rank, model_name=""):
     """Handles all the validation scoring and printing"""
     model.eval()
     with torch.no_grad():
@@ -160,7 +160,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
     model.train()
     if rank == 0:
         print("Validation loss {}: {:9f}  ".format(iteration, reduced_val_loss))
-        logger.log_validation(reduced_val_loss, model, y, y_pred, iteration)
+        logger.log_validation(reduced_val_loss, model, y, y_pred, iteration, model_name)
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
@@ -262,7 +262,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
             if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
                 validate(model, criterion, valset, iteration,
                          hparams.batch_size, n_gpus, collate_fn, logger,
-                         hparams.distributed_run, rank)
+                         hparams.distributed_run, rank, hparams.model_name)
                 if rank == 0:
                     checkpoint_path = os.path.join(
                         output_directory, "c_{}_{}".format(hparams.model_name,iteration))
