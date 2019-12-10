@@ -555,7 +555,14 @@ class Tacotron2SimpleCat(nn.Module):
         speaker_embedding = self.speaker_embedding(speakers).unsqueeze(1)
         speaker_embedding = speaker_embedding.expand_as(encoder_outputs)
 
-        encoder_outputs += speaker_embedding
+        speaker_embedding = self.speaker_embedding(speakers)
+        speaker_embedding_output = self.speaker_transformation(speaker_embedding)
+        speaker_embedding_output = speaker_embedding_output.unsqueeze(1)
+        expand_dims = list((speaker_embedding_output.shape[0],
+                           inputs.shape[1],
+                           speaker_embedding_output.shape[2]))
+        speaker_embedding_output = speaker_embedding_output.expand(*expand_dims)
+        encoder_outputs = torch.cat((encoder_outputs, speaker_embedding_output), 2)
 
         mel_outputs, gate_outputs, alignments = self.decoder.inference(
             encoder_outputs)
