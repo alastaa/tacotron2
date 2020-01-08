@@ -16,7 +16,8 @@ class TextMelLoader(torch.utils.data.Dataset):
         3) computes mel-spectrograms from audio files.
     """
     def __init__(self, audiopaths_and_text, hparams):
-        self.audiopaths_and_text = load_filepaths_and_text(audiopaths_and_text)
+        self.audiopaths_and_text = load_filepaths_and_text(audiopaths_and_text,
+                                                           speaker_id=hparams.speaker_id)
         self.model_type = hparams.model_type
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
@@ -30,7 +31,7 @@ class TextMelLoader(torch.utils.data.Dataset):
         random.shuffle(self.audiopaths_and_text)
 
     def get_speaker(self, audiopath_and_text):
-        filepath, text = audiopath_and_text[0], audiopath_and_text[1]
+        filepath, _ = audiopath_and_text[0], audiopath_and_text[1]
         speaker_code_mapping = {'01m': 0, '02m': 1, '03m': 2, '01n': 3, '02n': 4, '03n': 5}
         match = re.search(r'(?:long_)([0-9]{2}[n|m])', filepath)
         speaker_code = match.groups()[0]
@@ -69,7 +70,7 @@ class TextMelLoader(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         if self.model_type in ['simple-embedding', 'embedding', 'simple-cat', 'simple-cat2']:
-            return self.get_mel_text_pair(self.audiopaths_and_text[index])+\
+            return self.get_mel_text_pair(self.audiopaths_and_text[index]) +\
                     (self.get_speaker(self.audiopaths_and_text[index]),)
         else:
             return self.get_mel_text_pair(self.audiopaths_and_text[index])

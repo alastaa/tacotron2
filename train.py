@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 
 from model import Tacotron2
 from model_simple_embedding import Tacotron2SimpleEmbedding
-from model_embedding import Tacotron2Embedding 
+from model_embedding import Tacotron2Embedding
 from model_simple_cat import Tacotron2SimpleCat
 from model_simple_cat2 import Tacotron2SimpleCat2
 from model_gst import Tacotron2GST
@@ -294,12 +294,21 @@ if __name__ == '__main__':
                         help='name which goes in model checkpoint files')
     parser.add_argument('--model_type', type=str, default='normal',
                         help='Type of model. eg. gst, normal, simple-embedding')
+    parser.add_argument('--speaker_id', type=int, default=None,
+                        help='Train model with single speaker')
+    parser.add_argument('--batch_size', type=int, default=None,
+                        help='override batch_size in hparams')
+
+
 
 
     args = parser.parse_args()
     hparams = create_hparams(args.hparams)
     hparams.model_name = args.model_name
     hparams.model_type = args.model_type
+    hparams.speaker_id = args.speaker_id
+    if args.batch_size is not None:
+        hparams.batch_size = args.batch_size
 
     torch.backends.cudnn.enabled = hparams.cudnn_enabled
     torch.backends.cudnn.benchmark = hparams.cudnn_benchmark

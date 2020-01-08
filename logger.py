@@ -18,7 +18,8 @@ class Tacotron2Logger(SummaryWriter):
             self.add_scalar("learning.rate", learning_rate, iteration)
             self.add_scalar("duration", duration, iteration)
 
-    def log_validation(self, reduced_loss, model, y, y_pred, iteration, model_name=""):
+    def log_validation(self, reduced_loss, model, y, y_pred, iteration, model_name="",
+                       log_embedding=False):
         self.add_scalar("validation.loss", reduced_loss, iteration)
         _, mel_outputs, gate_outputs, alignments = y_pred
         mel_targets, gate_targets = y
@@ -48,8 +49,9 @@ class Tacotron2Logger(SummaryWriter):
                 gate_targets[idx].data.cpu().numpy(),
                 torch.sigmoid(gate_outputs[idx]).data.cpu().numpy()),2,0),
             iteration)
-        self.add_embedding(
-            model.speaker_embedding.weight.detach().cpu().numpy(),
-            [str(i) for i in range(model.speaker_embedding.num_embeddings)],
-            global_step=iteration,
-            tag='emb_{}'.format(model_name))
+        if log_embedding:
+            self.add_embedding(
+                model.speaker_embedding.weight.detach().cpu().numpy(),
+                [str(i) for i in range(model.speaker_embedding.num_embeddings)],
+                global_step=iteration,
+                tag='emb_{}'.format(model_name))
