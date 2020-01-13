@@ -220,56 +220,68 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     model.train()
     is_overflow = False
     # ================ MAIN TRAINNIG LOOP! ===================
-    for epoch in range(epoch_offset, hparams.epochs):
-        print("Epoch: {}".format(epoch))
-        for i, batch in enumerate(train_loader):
-            start = time.perf_counter()
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = learning_rate
+    try:
+        for epoch in range(epoch_offset, hparams.epochs):
+            print("Epoch: {}".format(epoch))
+            for i, batch in enumerate(train_loader):
+                start = time.perf_counter()
+                for param_group in optimizer.param_groups:
+                    param_group['lr'] = learning_rate
 
-            model.zero_grad()
-            x, y = model.parse_batch(batch)
-            y_pred = model(x)
+                model.zero_grad()
+                x, y = model.parse_batch(batch)
+                y_pred = model(x)
 
-            loss = criterion(y_pred, y)
-            if hparams.distributed_run:
-                reduced_loss = reduce_tensor(loss.data, n_gpus).item()
-            else:
-                reduced_loss = loss.item()
-            if hparams.fp16_run:
-                with amp.scale_loss(loss, optimizer) as scaled_loss:
-                    scaled_loss.backward()
-            else:
-                loss.backward()
+                loss = criterion(y_pred, y)
+                if hparams.distributed_run:
+                    reduced_loss = reduce_tensor(loss.data, n_gpus).item()
+                else:
+                    reduced_loss = loss.item()
+                if hparams.fp16_run:
+                    with amp.scale_loss(loss, optimizer) as scaled_loss:
+                        scaled_loss.backward()
+                else:
+                    loss.backward()
 
-            if hparams.fp16_run:
-                grad_norm = torch.nn.utils.clip_grad_norm_(
-                    amp.master_params(optimizer), hparams.grad_clip_thresh)
-                is_overflow = math.isnan(grad_norm)
-            else:
-                grad_norm = torch.nn.utils.clip_grad_norm_(
-                    model.parameters(), hparams.grad_clip_thresh)
+                if hparams.fp16_run:
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        amp.master_params(optimizer), hparams.grad_clip_thresh)
+                    is_overflow = math.isnan(grad_norm)
+                else:
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        model.parameters(), hparams.grad_clip_thresh)
 
-            optimizer.step()
+                optimizer.step()
 
-            if not is_overflow and rank == 0:
-                duration = time.perf_counter() - start
-                print("Train loss {} {:.6f} Grad Norm {:.6f} {:.2f}s/it".format(
-                    iteration, reduced_loss, grad_norm, duration))
-                logger.log_training(
-                    reduced_loss, grad_norm, learning_rate, duration, iteration)
+                if not is_overflow and rank == 0:
+                    duration = time.perf_counter() - start
+                    print("Train loss {} {:.6f} Grad Norm {:.6f} {:.2f}s/it".format(
+                        iteration, reduced_loss, grad_norm, duration))
+                    logger.log_training(
+                        reduced_loss, grad_norm, learning_rate, duration, iteration)
 
-            if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
-                validate(model, criterion, valset, iteration,
-                         hparams.batch_size, n_gpus, collate_fn, logger,
-                         hparams.distributed_run, rank, hparams.model_name)
-                if rank == 0:
-                    checkpoint_path = os.path.join(
-                        output_directory, "c_{}_{}".format(hparams.model_name,iteration))
-                    save_checkpoint(model, optimizer, learning_rate, iteration,
-                                    checkpoint_path)
+                if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
+                    validate(model, criterion, valset, iteration,
+                             hparams.batch_size, n_gpus, collate_fn, logger,
+                             hparams.distributed_run, rank, hparams.model_name)
+                    if rank == 0:
+                        checkpoint_path = os.path.join(
+                            output_directory, "c_{}_{}".format(hparams.model_name,iteration))
+                        save_checkpoint(model, optimizer, learning_rate, iteration,
+                                        checkpoint_path)
 
-            iteration += 1
+                iteration += 1
+    except KeyboardInterrupt:
+        print('interrupted')
+    finally:
+        validate(model, criterion, valset, iteration,
+                 hparams.batch_size, n_gpus, collate_fn, logger,
+                 hparams.distributed_run, rank, hparams.model_name)
+        if rank == 0:
+            checkpoint_path = os.path.join(
+                output_directory, "c_{}_{}".format(hparams.model_name,iteration))
+            save_checkpoint(model, optimizer, learning_rate, iteration,
+                            checkpoint_path)
 
 
 if __name__ == '__main__':
