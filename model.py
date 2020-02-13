@@ -82,7 +82,6 @@ class Attention(nn.Module):
         attention_weights = F.softmax(alignment, dim=1)
         attention_context = torch.bmm(attention_weights.unsqueeze(1), memory)
         attention_context = attention_context.squeeze(1)
-
         return attention_context, attention_weights
 
 
@@ -499,7 +498,8 @@ class Tacotron2(nn.Module):
         return outputs
 
     def parse_input(self, inputs):
-        inputs = fp32_to_fp16(inputs) if self.fp16_run else inputs
+        raise NotImplementedError()
+        # inputs = fp32_to_fp16(inputs) if self.fp16_run else inputs
         return inputs
 
     def forward(self, inputs):

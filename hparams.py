@@ -28,16 +28,16 @@ def create_hparams(hparams_string=None, verbose=False):
         load_mel_from_disk=False,
         training_files='../data/isot_persot_train_filelist.txt',
         validation_files='../data/isot_persot_val_filelist.txt',
-        #training_files='filelists/ljs_audio_text_train_filelist.txt',
-        #validation_files='filelists/ljs_audio_text_val_filelist.txt',
-        #text_cleaners=['english_cleaners'],
+        # training_files='filelists/ljs_audio_text_train_filelist.txt',
+        # validation_files='filelists/ljs_audio_text_val_filelist.txt',
+        # text_cleaners=['english_cleaners'],
         text_cleaners=['finnish_cleaners'],
 
         ################################
         # Audio Parameters             #
         ################################
         max_wav_value=32768.0,
-        #max_wav_value=8388608.0,
+        # max_wav_value=8388608.0,
         sampling_rate=22050,
         filter_length=1024,
         hop_length=256,
@@ -58,7 +58,7 @@ def create_hparams(hparams_string=None, verbose=False):
         encoder_embedding_dim=512,
 
         # Simple speaker embedding parameters
-        n_speakers = 6,
+        n_speakers=6,
         speaker_embedding_dim=512,
         speaker_embedding_transformation_dropout=0.1,
         # Used when concatenating embedding to tensors
@@ -86,19 +86,19 @@ def create_hparams(hparams_string=None, verbose=False):
         postnet_kernel_size=5,
         postnet_n_convolutions=5,
 
-        #GST parameters
+        # GST parameters
         # reference encoder
-        E = 512,
-        ref_enc_filters = [32, 32, 64, 64, 128, 128],
-        ref_enc_size = [3, 3],
-        ref_enc_strides = [2, 2],
-        ref_enc_pad = [1, 1],
-        ref_enc_gru_size = 512 // 2,
+        E=512,
+        ref_enc_filters=[32, 32, 64, 64, 128, 128],
+        ref_enc_size=[3, 3],
+        ref_enc_strides=[2, 2],
+        ref_enc_pad=[1, 1],
+        ref_enc_gru_size=512 // 2,
 
         # Style Token Layer
-        token_num = 10,
-        num_heads = 8,
-        n_mels = 80,
+        token_num=10,
+        num_heads=8,
+        n_mels=80,
 
         ################################
         # Optimization Hyperparameters #
