@@ -9,7 +9,7 @@ def create_hparams(hparams_string=None, verbose=False):
         ################################
         # Experiment Parameters        #
         ################################
-        epochs=500,
+        epochs=1000,
         iters_per_checkpoint=5000,
         seed=1234,
         dynamic_loss_scaling=True,
@@ -26,8 +26,8 @@ def create_hparams(hparams_string=None, verbose=False):
         # Data Parameters             #
         ################################
         load_mel_from_disk=False,
-        training_files='../data/isot_persot_train_filelist.txt',
-        validation_files='../data/isot_persot_val_filelist.txt',
+        training_files='../data/niinisto/niinisto_train_filelist.txt',
+        validation_files='../data/niinisto/niinisto_val_filelist.txt',
         # training_files='filelists/ljs_audio_text_train_filelist.txt',
         # validation_files='filelists/ljs_audio_text_val_filelist.txt',
         # text_cleaners=['english_cleaners'],
