@@ -26,8 +26,8 @@ def create_hparams(hparams_string=None, verbose=False):
         # Data Parameters             #
         ################################
         load_mel_from_disk=False,
-        training_files='../data/niinisto/niinisto_train_filelist.txt',
-        validation_files='../data/niinisto/niinisto_val_filelist.txt',
+        training_files='../data/niinisto16bit/niinisto_train_filelist.txt',
+        validation_files='../data/niinisto16bit/niinisto_val_filelist.txt',
         # training_files='filelists/ljs_audio_text_train_filelist.txt',
         # validation_files='filelists/ljs_audio_text_val_filelist.txt',
         # text_cleaners=['english_cleaners'],
