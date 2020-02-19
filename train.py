@@ -44,10 +44,10 @@ def init_distributed(hparams, n_gpus, rank, group_name):
     print("Done initializing distributed")
 
 
-def prepare_dataloaders(hparams):
+def prepare_dataloaders(hparams, audio_path_regex=None):
     # Get data, data loaders and collate function ready
-    trainset = TextMelLoader(hparams.training_files, hparams)
-    valset = TextMelLoader(hparams.validation_files, hparams)
+    trainset = TextMelLoader(hparams.training_files, hparams, audio_path_regex)
+    valset = TextMelLoader(hparams.validation_files, hparams, audio_path_regex)
     collate_fn = TextMelCollate(hparams.n_frames_per_step, hparams.model_type)
 
     if hparams.distributed_run:
@@ -56,7 +56,6 @@ def prepare_dataloaders(hparams):
     else:
         train_sampler = None
         shuffle = True
-
     train_loader = DataLoader(trainset, num_workers=1, shuffle=shuffle,
                               sampler=train_sampler,
                               batch_size=hparams.batch_size, pin_memory=False,
@@ -164,7 +163,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
-          rank, group_name, hparams):
+          rank, group_name, hparams, audio_path_regex=None):
     """Training and validation logging results to tensorboard and stdout
 
     Params
@@ -200,7 +199,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     logger = prepare_directories_and_logger(
         output_directory, log_directory, rank)
 
-    train_loader, valset, collate_fn = prepare_dataloaders(hparams)
+    train_loader, valset, collate_fn = prepare_dataloaders(hparams, audio_path_regex)
 
     # Load checkpoint if one exists
     iteration = 0
@@ -310,7 +309,8 @@ if __name__ == '__main__':
                         help='Train model with single speaker')
     parser.add_argument('--batch_size', type=int, default=None,
                         help='override batch_size in hparams')
-
+    parser.add_argument('--audio_path_regex', type=str, default=None,
+                        help='regex used to filter audio paths')
 
 
 
@@ -332,4 +332,5 @@ if __name__ == '__main__':
     print("cuDNN Benchmark:", hparams.cudnn_benchmark)
 
     train(args.output_directory, args.log_directory, args.checkpoint_path,
-          args.warm_start, args.n_gpus, args.rank, args.group_name, hparams)
+          args.warm_start, args.n_gpus, args.rank, args.group_name, hparams,
+          args.audio_path_regex)

@@ -1,6 +1,7 @@
 import numpy as np
 import wave
 import torch
+import re
 
 
 def get_mask_from_lengths(lengths, use_cpu):
@@ -18,15 +19,24 @@ def load_wav_to_torch(full_path):
     return torch.FloatTensor(data.astype(np.float32)), sampling_rate
 
 
-def load_filepaths_and_text(filename, split="|", speaker_id=None):
+def load_filepaths_and_text(filenames, split="|", speaker_id=None,
+                            audio_path_regex=None):
     speaker_id_mapping = {0: '01m', 1: '02m',2: '03m', 3: '01n',4: '02n', 5: '03n'}
-    with open(filename, encoding='utf-8') as f:
-        if speaker_id is not None:
-            filepaths_and_text = [line.strip().split(split) for line in f
-                                  if speaker_id_mapping[speaker_id] in line.split(split)[0]]
-        else:
-            filepaths_and_text = [line.strip().split(split) for line in f]
-    return filepaths_and_text
+    all_filepaths_and_text = []
+    for filename in filenames:
+        with open(filename, encoding='utf-8') as f:
+            if speaker_id is not None:
+                filepaths_and_text = [line.strip().split(split) for line in f
+                                      if speaker_id_mapping[speaker_id] in line.split(split)[0]]
+            else:
+                filepaths_and_text = [line.strip().split(split) for line in f]
+
+        if audio_path_regex is not None:
+            filepaths_and_text = [ft for ft in filepaths_and_text
+                                  if re.search(audio_path_regex, ft[0])]
+        all_filepaths_and_text.extend(filepaths_and_text)
+
+    return all_filepaths_and_text
 
 
 def to_gpu(x):

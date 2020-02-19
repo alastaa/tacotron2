@@ -12,12 +12,17 @@ from text import text_to_sequence
 class TextMelLoader(torch.utils.data.Dataset):
     """
         1) loads audio,text pairs
+            If include filters is given only paths containing these filters are kept.
+            If exclude filters are given paths with these filters are excluded.
         2) normalizes text and converts them to sequences of one-hot vectors
         3) computes mel-spectrograms from audio files.
     """
-    def __init__(self, audiopaths_and_text, hparams):
-        self.audiopaths_and_text = load_filepaths_and_text(audiopaths_and_text,
-                                                           speaker_id=hparams.speaker_id)
+    def __init__(self, audiopaths_and_text_files, hparams, audio_path_regex=None):
+        if isinstance(audiopaths_and_text_files, str):
+            audiopaths_and_text_files = [audiopaths_and_text_files]
+        self.audiopaths_and_text = load_filepaths_and_text(audiopaths_and_text_files,
+                                                           speaker_id=hparams.speaker_id,
+                                                           audio_path_regex=audio_path_regex)
         self.model_type = hparams.model_type
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
