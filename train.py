@@ -2,6 +2,7 @@ import os
 import time
 import argparse
 import math
+import glob
 from numpy import finfo
 
 import torch
@@ -311,8 +312,9 @@ if __name__ == '__main__':
                         help='override batch_size in hparams')
     parser.add_argument('--audio_path_regex', type=str, default=None,
                         help='regex used to filter audio paths')
-
-
+    parser.add_argument('--latest_checkpoint', default=False,
+                        action='store_true',
+                        help='Latest checkpoint will be used in checkpoint_path')
 
     args = parser.parse_args()
     hparams = create_hparams(args.hparams)
@@ -321,6 +323,13 @@ if __name__ == '__main__':
     hparams.speaker_id = args.speaker_id
     if args.batch_size is not None:
         hparams.batch_size = args.batch_size
+
+    checkpoint_path = args.checkpoint_path
+    if args.latest_checkpoint and args.checkpoint_path is None:
+        model_filename_base = "c_{}*".format(args.model_name)
+        checkpoint_files = glob.glob(os.path.join(args.output_directory, model_filename_base))
+        latest_checkpoint = max(checkpoint_files, key=lambda x: int(x.split('_')[-1]))
+        checkpoint_path = latest_checkpoint
 
     torch.backends.cudnn.enabled = hparams.cudnn_enabled
     torch.backends.cudnn.benchmark = hparams.cudnn_benchmark
@@ -331,6 +340,6 @@ if __name__ == '__main__':
     print("cuDNN Enabled:", hparams.cudnn_enabled)
     print("cuDNN Benchmark:", hparams.cudnn_benchmark)
 
-    train(args.output_directory, args.log_directory, args.checkpoint_path,
+    train(args.output_directory, args.log_directory, checkpoint_path,
           args.warm_start, args.n_gpus, args.rank, args.group_name, hparams,
           args.audio_path_regex)
