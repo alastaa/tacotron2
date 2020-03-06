@@ -3,6 +3,7 @@ import time
 import argparse
 import math
 import glob
+import json
 from numpy import finfo
 
 import torch
@@ -315,6 +316,8 @@ if __name__ == '__main__':
     parser.add_argument('--latest_checkpoint', default=False,
                         action='store_true',
                         help='Latest checkpoint will be used in checkpoint_path')
+    parser.add_argument('--preset', type=str, default=None,
+                        help='Path to json-file containing hparams.')
 
     args = parser.parse_args()
     hparams = create_hparams(args.hparams)
@@ -323,6 +326,11 @@ if __name__ == '__main__':
     hparams.speaker_id = args.speaker_id
     if args.batch_size is not None:
         hparams.batch_size = args.batch_size
+    if args.preset is not None:
+        with open(args.preset, 'r') as jf:
+            preset_json = json.load(jf)
+        for key, value in preset_json.items():
+            setattr(hparams, key, value)
 
     checkpoint_path = args.checkpoint_path
     if args.latest_checkpoint and args.checkpoint_path is None:

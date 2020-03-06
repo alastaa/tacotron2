@@ -27,9 +27,11 @@ def create_hparams(hparams_string=None, verbose=False):
         ################################
         load_mel_from_disk=False,
         training_files=['../data/perso_synteesi_train_filelist.txt',
-                        '../data/isot_persot_train_filelist.txt'],
+                        '../data/isot_persot_train_filelist.txt',
+                        '../data/nick_isot_persot_train_filelist.txt'],
         validation_files=['../data/perso_synteesi_val_filelist.txt',
-                          '../data/isot_persot_val_filelist.txt'],
+                          '../data/isot_persot_val_filelist.txt',
+                          '../data/nick_isot_persot_val_filelist.txt'],
         # training_files='filelists/ljs_audio_text_train_filelist.txt',
         # validation_files='filelists/ljs_audio_text_val_filelist.txt',
         # text_cleaners=['english_cleaners'],
